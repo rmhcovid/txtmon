@@ -1,11 +1,11 @@
 # RMH Covid-19 Home Monitor
-RMH Home Monitor lets hospitals manage a large number of Covid-19 cases in the patient's own homes using their smartphone and two simple medical devices (pulse oximeter + thermometer).
+RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using a smartphone and two simple medical devices (pulse oximeter + thermometer).
 
-The goal is to oversee a large number of realatively health patients with Covid-19 in their own homes, saving bed space and staff resources.
+The goal is to oversee a large number of realatively health patients in their own homes, saving bed space and staff resources.
 
 The system prompts patients twice per day to submit their own heart rate, body temperature and oxygen saturation via a website. Clinicians are alerted to patients with concerning or critical vitals. Automation keep staff interaction and administrative work minimal.
 
-RMH Txtmon is a [REDCap](https://projectredcap.org/software/) (Research Electronic Data Capture tool) project template that you can copy and adapted for your facility. Users intereact with the system via a public website (a REDCap *Survey*).
+RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research Electronic Data Capture tool) project template that you can copy and adapted for your facility. Users intereact with the system via a public website (a REDCap *Survey*).
 
 ## Features
 
@@ -14,15 +14,20 @@ RMH Txtmon is a [REDCap](https://projectredcap.org/software/) (Research Electron
 - Store and analyse these 'Observations'
 - Alert staff when should be reviewed by a clinician because of high/low vitals
 - Alert staff if a patient should return to the hospital immediately (a MET call)
-- Alert patient and staff of patients who have missed submitting their observation.
+- Alert patient and staff of patients who have missed submitting their observation
+- Alert thresholds set per patient
 - Keep clinical notes for each patient
 - Discharge the patient and produce medical records
 - Ask various other tracking questions for medical analysis
 
 
-**As of April 2020** txtmon is in use at the Royal Melbourne Hospital in Victoria, Australia.
+**As of April 2020** the project is in use at the Royal Melbourne Hospital in Victoria, Australia.
 
-This project has been developed by Martin Dutch and Tim Fazio and is shared with compliments of [The Royal Melbourne Hospital, Victoria, Australia](https://www.thermh.org.au/).
+This project has been developed by Dr Martin Dutch and Associate Professor Jonathan Knott and is shared with compliments of [The Royal Melbourne Hospital, Victoria, Australia](https://www.thermh.org.au/). The Peter Doherty Institute for Infection and Immunity has provided funding for the project through a research grant.
+
+You may use and adapt this project free of charge, however we ask that you acknowledge this project and the Royal Melbourne Hospital in your copy, and any associated academic publications.
+
+We would be delighted to received correspondence if your health service has found our contribution useful, and would be happy to work collaboratively to measure the impact of this service delivery.
 
 ## Requirements for using the system
 
@@ -30,7 +35,7 @@ This project has been developed by Martin Dutch and Tim Fazio and is shared with
 
 - a [REDCap](https://projectredcap.org/software/) installation and license
 - a recent enough version of REDCap to support the *Alerts and Notifications Function*
-- an outgoing email server and SMS gateway
+- an outgoing email server and SMS gateway (ideally Twilio)
 - TODO
 
 TODO - info about the medical pack.
@@ -58,9 +63,6 @@ TODO
 
 The best place to obtain help is ... TODO 
 
-If you REDCap instance doesn't have *Alerts and notifications* under the applications heading, then your version is too old. 
-It may be possible to maintain an old version using the [Autonotify plugin](https://github.com/123andy/redcap-plugin-autonotify) from 123Andy. We are unable to provide support for this.
-
 ## How to Contribute
 
 TODO
@@ -77,4 +79,4 @@ Please see the attached LICENSE document.
 ## Author and Acknowledgements
 
 This project was designed and managed using the [REDCap](https://projectredcap.org/software/) electronic data capture tool
-hosted by the [Royal Melbourne Hospital Business Intelligence Unit](https://www.thermh.org.au/).
+hosted by the [Royal Melbourne Hospital Business Intelligence Unit](https://www.thermh.org.au/). The Peter Doherty Institute for Infection and Immunity has provided funding through a research grant to make this project possible.
