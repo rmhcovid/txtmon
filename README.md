@@ -46,6 +46,10 @@ Take a copy of our REDCap project file. **You must modified it** before you use 
 
 TODO
 
+TODO - add note about re-enabling Twilio in Project Settings
+     - and adding phone number, account number and auth key
+     - and defining which field of the Registration is the mobile field
+
 1. Read the brief [overview guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md)
 2. Follow the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running
 3. Read the [technical_overview](https://github.com/rmhcovid/txtmon/blob/master/documentation/technical_overview.md) to understand how the tool works and adapt it to your needs
