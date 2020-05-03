@@ -1,7 +1,7 @@
 # RMH Covid-19 Home Monitor
 RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using a smartphone and two simple medical devices (pulse oximeter + thermometer).
 
-The goal is to oversee a large number of realatively health patients in their own homes, saving bed space and staff resources.
+The goal is to oversee a large number of realatively healthy patients in their own homes, saving bed space and staff resources.
 
 The system prompts patients twice per day to submit their own heart rate, body temperature and oxygen saturation via a website. Clinicians are alerted to patients with concerning or critical vitals. Automation keep staff interaction and administrative work minimal.
 
