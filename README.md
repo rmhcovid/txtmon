@@ -27,7 +27,7 @@ This project has been developed by Dr Martin Dutch and Associate Professor Jonat
 
 You may use and adapt this project free of charge, however we ask that you acknowledge this project and the Royal Melbourne Hospital in your copy, and any associated academic publications.
 
-We would be delighted to received correspondence if your health service has found our contribution useful, and would be happy to work collaboratively to measure the impact of this service delivery.
+We would be delighted to received correspondence if your health service has found our contribution useful, and would be happy to work collaboratively to measure the impact of this service delivery. Contact details are below.
 
 ## Requirements for using the system
 
@@ -35,8 +35,9 @@ We would be delighted to received correspondence if your health service has foun
 
 - a [REDCap](https://projectredcap.org/software/) installation and license
 - a recent enough version of REDCap to support the *Alerts and Notifications Function*
-- an outgoing email server and SMS gateway (ideally Twilio)
-- TODO
+- an outgoing email server and an email address for your staff
+- a mobile phone that can receive SMS for staff alerts
+- an outgoing SMS service (ideally Twilio)
 
 TODO - info about the medical pack.
 
@@ -45,15 +46,6 @@ TODO - info about the medical pack.
 Take a copy of our REDCap project file. **You must modified it** before you use it.
 
 TODO - add note about re-enabling Auto survey invites
-
-TODO - add note about re-enabling Twilio in Project Settings
-     - and adding phone number, account number and auth key
-     - and defining which field of the Registration is the mobile field
-       'Select the project modules in which the Twilio service will be enabled' -> 'ALL'
-       'Designate a phone number field for survey invitations'
-       'Choose the default invitation preference for new survey participants'
-     - Click the 'I'm Done' button next to 'Twilio SMS and Voice Call services'
-       Otherwise you'll get 'REDCap crashed due to an unexpected fatal error!' on send
 
 1. Read the brief [overview guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md)
 2. Follow the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running
