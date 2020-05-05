@@ -2,7 +2,7 @@
 
 Setting up the technical system is just one small part of running a Home Monitoring Project in your organisation. Organising staff, procedures, 
 
-You *must* familiarise yourself with the overall project to have any hope of absorbing these technical systems. There is a copy of our overall project procedures document 
+You *must* familiarise yourself with the overall project to have any hope of absorbing these technical systems. There is a copy of our overall project procedures document in /latest_version/RMH Covid-19 Home Monitoring Program.pdf. Stop now and read that document.
 
 ## Preparation
 
@@ -18,7 +18,7 @@ You *must* familiarise yourself with the overall project to have any hope of abs
    <br/>Ask your IT staff to setup a paid Twilio account
    <br/>Ask your REDCaps administrator to enable Twilio on your system
    <br/>Ask your IT staff to provide you the twilio account details and phone number
-4. xxxxxx TODO
+4. xxxxxx TODO anything else?
 
 
 ## Create the REDCap project onto your server
@@ -82,9 +82,6 @@ Branding must be updated in:
 - Automatic Survey Invites
 
 
-## TODO what other project setup?
-
-TODO
 # What to do next
 
 ## Process a sample patient
@@ -127,10 +124,10 @@ Some other things to try:
 
 # Using this system in your emergency department
 
-TODO information from Louis
+How we operate this in our hospital is set out in '/latest_version/RMH Covid-19 Home Monitoring Program.pdf'
 
+TODO supporting flyers, paperwork etc?
 
-TODO ????
 
 # Known Issues
 

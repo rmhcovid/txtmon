@@ -23,10 +23,12 @@ Running home monitoring is much more than just the technical systems. **Before c
 
 # What to do now
 
-Work out the person in your organisation best able to configure and setup this system. You might have a dedicated REDCap administrator, a helpful IT department, or a technically skilled clinician.
+1. Read the program guide 'RMH Covid-19 Home Monitoring Program.pdf' (you can find it in /latest_version/). It explains how we run the project at The Royal Melbourne, how to operate the software, what our staff processes are etc.
 
-To setup your own copy of the monitoring system, read documentation/setup_instructions.md
+2. Work out the person in your organisation best able to configure and setup this system. You might have a dedicated REDCap administrator, a helpful IT department, or a technically skilled clinician.
 
-To understand how the system works and to adapt it to your local needs, read documentation/redcap_design_overview.md
+3. To setup your own copy of the monitoring system, read documentation/setup_instructions.md
 
-Let us know that you're using the project. RMH is not in a position to offer technical support, but we are excited to hear if you've been able to adapt our work. We'd love to hear about improvements, simplifications or other features you've added.
+4. To understand how the system is built and to adapt it to your local needs, read documentation/redcap_design_overview.md
+
+5. Let us know that you're using the project. RMH is not in a position to offer technical support, but we are excited to hear if you've been able to adapt our work. We'd love to hear about improvements, simplifications or other features you've added.
