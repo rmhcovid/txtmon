@@ -45,28 +45,29 @@ TODO - info about the medical pack.
 
 Take a copy of our REDCap project file. **You must modified it** before you use it.
 
-TODO - add note about re-enabling Auto survey invites
-
 1. Read the brief [overview guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md)
 2. Follow the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running
-3. Read the [technical_overview](https://github.com/rmhcovid/txtmon/blob/master/documentation/technical_overview.md) to understand how the tool works and adapt it to your needs
-
 
 ## Documentation
 
-TODO see /documentation/ directory
-
-## Reporting Issues
-
-TODO
+See the /Documentation/ directory.
 
 ## Help and Known Issues
 
-The best place to obtain help is ... TODO 
+Please see a list of known issues in the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md).
 
 ## How to Contribute
 
-TODO
+We'd love to get your feedback and to hear about how you've been able to use this work in your own organisations. You can email us at xxxxxxx TODO.
+
+## Reporting Issues
+
+We are not in a position to offer technical support. We are offering our work in the hope that it might be useful for other organisations to adapt.
+
+You are welcome to add Issues using the normal GitHub process, however you *should not expect to get a reply*.
+
+We will consider any formal pull requests made via the usual GitHub process.
+
 
 ## Legal
 
@@ -75,7 +76,7 @@ Please see the attached LICENSE document.
 ## Version History
 
 - See  [CHANGELOG.md](https://github.com/rmhcovid/txtmon/blob/master/CHANGELOG.md)
-- TODO
+- 0.9.0 - 2020-05-05 - CovidHomeMonitoring_2020-05-05_1649.REDCap.xml
 
 ## Author and Acknowledgements
 
