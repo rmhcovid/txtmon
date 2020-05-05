@@ -4,7 +4,8 @@ We have provided you with a REDCap project template for you to adapt into your o
 
 This REDCap project stores the patient information, schedules and send SMS/EMAIL to your patient sand staff, triggers alerts on patient health readings, and performs a number of reporting and administrative functions.
 
-Running home monitoring is much more than just the technical systems. **Before continuing have you read XXXXXXXXXXXXXXXXXXXX (project overview)**? We will assume you're at least basically familiar with our monitoring project and our terminology around Observation, Monitoring Periods etc. *Please do take the time to read and prepare. It will make setting up your own system much easier.*
+Running home monitoring is much more than just the technical systems. **Before continuing, have you read** [Home Monitoring Program Guide](https://github.com/rmhcovid/txtmon/blob/master/latest_version/RMH%20Covid-19%20Home%20Monitoring%20Program.pdf)? We will assume you're at least basically familiar with our monitoring project and our terminology around Observation, Monitoring Periods etc. Please do take the time to read and prepare. It will make setting up your own system much easier.
+
 
 # Major components of the system
 

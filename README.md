@@ -1,4 +1,4 @@
-# RMH Covid-19 Home Monitor
+# RMH Covid-19 Home Monitoring Project
 RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using a smartphone and two simple medical devices (pulse oximeter + thermometer).
 
 The goal is to oversee a large number of relatively healthy patients in their own homes, saving bed space and staff resources.
@@ -45,17 +45,13 @@ TODO - info about the medical pack.
 
 Take a copy of our REDCap project file. **You must modified it** before you use it.
 
-1. Read the brief [overview guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md).
-2. Read the [Home Monitoring Program Guide](https://github.com/rmhcovid/txtmon/blob/master/latest_version/RMH Covid-19 Home Monitoring Program.pdf) that explains how the project is run, the staff and patient processes.
-3. Follow the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running.
-
-## Documentation
-
-See the /Documentation/ directory.
+1. Read the brief [Overview Guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md).
+2. Read the [Home Monitoring Program Guide](https://github.com/rmhcovid/txtmon/blob/master/latest_version/RMH%20Covid-19%20Home%20Monitoring%20Program.pdf) that explains how the project is run, the staff and patient processes.
+3. Follow the [Setup Instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running.
 
 ## Help and Known Issues
 
-Please see a list of known issues in the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md).
+Please see a list of known issues in the [Setup Instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md).
 
 ## How to Contribute
 

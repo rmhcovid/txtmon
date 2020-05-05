@@ -2,7 +2,7 @@
 
 Setting up the technical system is just one small part of running a Home Monitoring Project in your organisation. Organising staff, procedures, 
 
-You *must* familiarise yourself with the overall project to have any hope of absorbing these technical systems. There is a copy of our overall project procedures document in /latest_version/RMH Covid-19 Home Monitoring Program.pdf. Stop now and read that document.
+You *must* familiarise yourself with the overall project to have any hope of absorbing these technical systems. There is a copy of our overall project procedures document in /latest_version/RMH Covid-19 Home Monitoring Program.pdf. Stop now and read that document. You will need to understand our concept of Observations, Monitoring Period, Observation Days etc.
 
 ## Preparation
 
