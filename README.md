@@ -44,11 +44,16 @@ TODO - info about the medical pack.
 
 Take a copy of our REDCap project file. **You must modified it** before you use it.
 
-TODO
+TODO - add note about re-enabling Auto survey invites
 
 TODO - add note about re-enabling Twilio in Project Settings
      - and adding phone number, account number and auth key
      - and defining which field of the Registration is the mobile field
+       'Select the project modules in which the Twilio service will be enabled' -> 'ALL'
+       'Designate a phone number field for survey invitations'
+       'Choose the default invitation preference for new survey participants'
+     - Click the 'I'm Done' button next to 'Twilio SMS and Voice Call services'
+       Otherwise you'll get 'REDCap crashed due to an unexpected fatal error!' on send
 
 1. Read the brief [overview guide](https://github.com/rmhcovid/txtmon/blob/master/documentation/overview_START_HERE.md)
 2. Follow the [setup instructions](https://github.com/rmhcovid/txtmon/blob/master/documentation/setup_instructions.md) to get a copy up and running
