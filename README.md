@@ -1,5 +1,5 @@
 # RMH Covid-19 Home Monitoring Project
-RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using a smartphone and two simple medical devices (pulse oximeter + thermometer).
+RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using their smartphones and two simple medical devices (pulse oximeter + thermometer).
 
 The goal is to oversee a large number of relatively healthy patients in their own homes, saving bed space and staff resources.
 
@@ -19,6 +19,8 @@ RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research
 - Keep clinical notes for each patient
 - Discharge the patient and produce medical records
 - Ask various other tracking questions for medical analysis
+
+![Screenshot](https://user-images.githubusercontent.com/1585749/81142763-d1cccf80-8fb3-11ea-9c00-5e8d08e0de3d.png)
 
 
 **As of April 2020** the project is in use at the Royal Melbourne Hospital in Victoria, Australia.
