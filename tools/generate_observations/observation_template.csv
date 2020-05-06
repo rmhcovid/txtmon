@@ -1,0 +1,41 @@
+timestamp_template,ob_template,,text,Timestamp,,,datetime_seconds_ymd,,,,,,,,,," @HIDDEN-SURVEY @NOW"
+title_measurements_template,ob_template,,descriptive,"<div class=""rich-text-field-label""><h2>Your Measurements</h2></div>",,,,,,,,,,,,,
+help_template,ob_template,,checkbox,Help,"1, How to take your measurements (click here)",,,,,,,,,,,,
+help_pulseox_template,ob_template,,descriptive,"Information about taking your measurements",,,,,,,"[help_template(1)] = '1'",,,,,,
+sat_template,ob_template,,text,"<div class=""rich-text-field-label""><p>Enter your  <span style=""color: #3598db;"">OXYGEN LEVEL (sp02)</span></p></div>",,,number,40,100,,,y,,,,,
+hr_template,ob_template,,text,"<div class=""rich-text-field-label""><p>Enter your  <span style=""color: #e03e2d;"">HEART RATE</span></p></div>",,,number,30,180,,,y,,,,,
+temp_template,ob_template,,text,"<div class=""rich-text-field-label""><p>Enter your  <span style=""color: #e67e23;"">TEMPERATURE</span></p></div>",,,number,32,43,,,y,,,,,
+calc_in_fw_temp_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #f1c40f;"">Temp in Fever Warning range</span></p></div>","if([temp_template] > [fw_high_temp], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_cr_temp_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #e67e23;"">Temp in Clinical Review range</span></p></div>","if([temp_template] > [cr_high_temp], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_cr_sat_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #e67e23;"">Sats in Clinical Review range</span></p></div>","if([sat_template] < [cr_low_sat], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_cr_hr_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #e67e23;"">Heartrate in Clinical Review range</span></p></div>","if([hr_template] > [cr_high_hr], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_mc_temp_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #843fa1;"">Temp in Met Call range</span></p></div>","if([temp_template] > [mc_high_temp], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_mc_sat_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #843fa1;"">Sats in MET Call range</span></p></div>","if([sat_template] < [mc_low_sat], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_in_mc_hr_template,ob_template,,calc,"<div class=""rich-text-field-label""><p><span style=""color: #843fa1;""><span style=""color: #843fa1;"">Heartrate in MET Call range</span><br /></span></p></div>","if([hr_template] < [mc_low_hr] or [hr_template] > [mc_high_hr], 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_mc_template,ob_template,,calc,"<div class=""rich-text-field-label""><p>Observation Should Trigger <span style=""color: #843fa1;"">MET Call</span></p></div>","if([calc_in_mc_temp_template] = 1 or [calc_in_mc_sat_template] = 1 or [calc_in_mc_hr_template] = 1, 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_cr_template,ob_template,,calc,"<div class=""rich-text-field-label""><p>Observation Should Trigger <span style=""color: #e67e23;"">Clinical Review</span></p></div>","if([calc_trigger_mc_template] = 0 and ([calc_in_cr_temp_template] = 1 or [calc_in_cr_sat_template] = 1 or [calc_in_cr_hr_template] = 1), 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_fw_template,ob_template,,calc,"<div class=""rich-text-field-label""><p>Observation Should Trigger <span style=""color: #f1c40f;"">Fever Warning</span></p></div>","if([calc_trigger_cr_template] = 0 and [calc_trigger_mc_template] = 0 and [calc_in_fw_temp_template] = 1, 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_alert_level_template,ob_template,,calc,"Alert level","if([calc_trigger_mc_template] = 1, 3, if([calc_trigger_cr_template] = 1, 2, if([calc_trigger_fw_template] = 1, 1, 0)))","0 NONE, 1 FEVER_WARNING, 2 CLINICALREVIEW, 3 METCALL",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_alert_patient_template,ob_template,,calc,"Should REDCap send a patient alert?","if([calc_trigger_fw_template] = 1 or [calc_trigger_cr_template] = 1 or [calc_trigger_mc_template] = 1, 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+calc_trigger_alert_staff_template,ob_template,,calc,"Should REDCap send a staff alert?","if([calc_trigger_cr_template] = 1 or [calc_trigger_mc_template] = 1, 1, 0)","1 TRUE, 0 FALSE",,,,,,,,,,," @HIDDEN-SURVEY"
+next_reminder_template,ob_template,,descriptive,"<div class=""rich-text-field-label""><h3>You must click 'Next Page' button below</h3></div>",,,,,,,,,,,,,
+supqn_tired_template,ob_template,"Confirm and Submit",yesno,"Are you feeling more tired than usual?",,,,,,,,,,,,,
+supqn_breath_template,ob_template,,yesno,"Are you breathing abnormally?",,,,,,,,,,,,," @HIDDEN"
+supqn_phlegm_template,ob_template,,yesno,"Are you coughing up phlegm?",,,,,,,,,,,,,
+supqn_puffed_template,ob_template,,yesno,"Are you unusually puffed after walking?",,,,,,,,,,,,," @HIDDEN"
+supqn_breath_gentle_scale_template,ob_template,,slider,"<p>How breathless are you when doing gentle activities?</p> <p> </p> <font size = 2; color = steelblue>
+Gentle activities include
+<ul> <li>Walking slowly around the house
+ <li>Doing the dishes or the ironing
+<li>Cooking a light meal
+<li>Getting dressed or having a shower
+</ul>
+<p><font color = black></p>","Not Breathless at all |  | I can't imagine being more breathless",,,,,,,,LH,,,,
+supqn_breath_sit_scale_template,ob_template,,slider,"How breathless are you when sitting still in a comfortable positions?","Not Breathless at all |  | I can't imagine being more breathless",,,,,,,,LH,,,,
+submit_reminder_template,ob_template,,descriptive,"<div class=""rich-text-field-label""><h2>Click Submit to Complete.</h2> <p>Afterwards you'll be redirected to the Australian Governments Essential Information site, which is updated regularly to give you the latest news</p></div>",,,,,,,,,,,,,
+condtxt_alert_title_staff_template,ob_template,,dropdown,"Conditional Text - Alert level name for staff alerts","0,  | 1,  | 2, Alert Clinical Review | 3, WARNING MET CALL","conditional text for staff alerts",,,,,"[calc_trigger_alert_staff_template] = 1",,,,,," @READONLY @DEFAULT = ""[calc_trigger_alert_level_template]""
+@HIDDEN-SURVEY"
+condtxt_instr_patient_template,ob_template,,dropdown,"Conditional Text - Patient instructions for alerts","0,  | 1, It looks like you're running a temperature. If you feel unwell, you might like to take 2 Panadol every 6 hours. | 2, It looks like you may be unwell. If you think you are getting worse, don't hesitate to ring us. | 3, It looks like you may be unwell. We will try and call you back, but if you don't hear from us, please make your way into hospital.","conditional text for patient alerts",,,,,"[calc_trigger_alert_patient_template] = 1",,,,,," @READONLY @DEFAULT = ""[calc_trigger_alert_level_template]""
+@HIDDEN-SURVEY"
+clinician_obs_note_template,ob_template,,text,"Medical Observation Note",,"entered by clinician responding to observation",,,,,,,,,,," @HIDDEN-SURVEY"
+clinician_obs_note_datetime_template,ob_template,,text,"Medical Observation Note - Timestamp",,"entered by clinician responding to observation",datetime_seconds_ymd,,,,,,,,,," @HIDDEN-SURVEY"

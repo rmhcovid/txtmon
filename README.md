@@ -5,7 +5,7 @@ The goal is to oversee a large number of relatively healthy patients in their ow
 
 The system prompts patients twice per day to submit their own heart rate, body temperature and oxygen saturation via a website. Clinicians are alerted to patients with concerning or critical vitals. Automation keep staff interaction and administrative work minimal.
 
-RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research Electronic Data Capture tool) project template that you can copy and adapted for your facility. Users interact with the system via a public website (a REDCap *Survey*).
+RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research Electronic Data Capture tool) project template that you can copy and adapted for your facility. Patients interact with the system via public websites (REDCap *Surveys*).
 
 ## Features
 
