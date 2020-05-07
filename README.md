@@ -1,5 +1,5 @@
 # RMH Covid-19 Home Monitoring Project
-RMH Home Monitor lets a hospitals manage a large number of Covid-19 patients using their smartphones and two simple medical devices (pulse oximeter + thermometer).
+RMH Home Monitoring lets a hospital manage a large number of Covid-19 patients using their smartphones and two simple medical devices (pulse oximeter + thermometer).
 
 The goal is to oversee a large number of relatively healthy patients in their own homes, saving bed space and staff resources.
 
@@ -10,14 +10,14 @@ RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research
 ## Features
 
 - Patient registration
-- Contact patients for their heart rate, temperature and oxygen saturation
+- Automatically prompt patients for their heart rate, temperature and oxygen saturation
 - Store and analyse these 'Observations'
-- Alert staff when should be reviewed by a clinician because of high/low vitals
+- Alert staff to patients that should be reviewed because of high/low vitals
 - Alert staff if a patient should return to the hospital immediately (a MET call)
-- Alert patient and staff of patients who have missed submitting their observation
-- Alert thresholds set per patient
+- Alert patient and staff of patients who are late submitting their data
+- Alert thresholds are set per patient
 - Keep clinical notes for each patient
-- Discharge the patient and produce medical records
+- Discharge patients and produce medical records
 - Ask various other tracking questions for medical analysis
 
 ![Screenshot](https://user-images.githubusercontent.com/1585749/81142763-d1cccf80-8fb3-11ea-9c00-5e8d08e0de3d.png)
@@ -25,11 +25,13 @@ RMH Home Monitoring is a [REDCap](https://projectredcap.org/software/) (Research
 
 **As of April 2020** the project is in use at the Royal Melbourne Hospital in Victoria, Australia.
 
-This project has been developed by Dr Martin Dutch and Associate Professor Jonathan Knott and is shared with compliments of [The Royal Melbourne Hospital, Victoria, Australia](https://www.thermh.org.au/). The Peter Doherty Institute for Infection and Immunity has provided funding for the project through a research grant.
+This project has been developed by Dr Martin Dutch and Associate Professor Jonathan Knott and is shared with compliments of [The Royal Melbourne Hospital, Victoria, Australia](https://www.thermh.org.au/). [The Peter Doherty Institute for Infection and Immunity](https://www.doherty.edu.au/) has provided funding for the project through a research grant.
 
 You may use and adapt this project free of charge, however we ask that you acknowledge this project and the Royal Melbourne Hospital in your copy, and any associated academic publications.
 
 We would be delighted to received correspondence if your health service has found our contribution useful, and would be happy to work collaboratively to measure the impact of this service delivery. Contact details are below.
+
+Though a non-traditional tool for building a monitoring system, REDCap allowed us to rapidly prototype the system in response to the pandemic in early 2020. We hope it will also make the system accessible to organisations facing Covid-19 pressure but without the resources to build software projects.
 
 ## Requirements for using the system
 
@@ -37,11 +39,12 @@ We would be delighted to received correspondence if your health service has foun
 
 - a [REDCap](https://projectredcap.org/software/) installation and license
 - a recent enough version of REDCap to support the *Alerts and Notifications Function*
-- an outgoing email server and an email address for your staff
 - a mobile phone that can receive SMS for staff alerts
 - an outgoing SMS service (ideally Twilio)
-
-TODO - info about the medical pack.
+- an outgoing email server and an email address for your staff
+- ability to provide patients with a digital thermometer and pulse oximeter
+- staff to respond to patient observations and alerts
+- staff to manage patient registrations and discharge
 
 ## Download, setup the tool, and prepare your team
 
@@ -57,11 +60,11 @@ Please see a list of known issues in the [Setup Instructions](https://github.com
 
 ## How to Contribute
 
-We'd love to get your feedback and to hear about how you've been able to use this work in your own organisations. You can email us at rmhcovid@314.net.au (TODO Martin, new hospital address?).
+We'd love to get your feedback and to hear about how you've been able to use this work in your own organisations. You can email us at rmhcovid@314.net.au.
 
 ## Reporting Issues
 
-We are not in a position to offer technical support. We are offering our work in the hope that it might be useful for other organisations to adapt.
+We are not in a position to offer technical support. We are offering our work so far in the hope that it might be useful for other organisations. You may run something similar to what we have, or adapt it for your needs.
 
 You are welcome to add Issues using the normal GitHub process, however you *should not expect to get a reply*.
 
@@ -79,5 +82,4 @@ Please see the attached LICENSE document.
 
 ## Author and Acknowledgements
 
-This project was designed and managed using the [REDCap](https://projectredcap.org/software/) electronic data capture tool
-hosted by the [Royal Melbourne Hospital Business Intelligence Unit](https://www.thermh.org.au/). The Peter Doherty Institute for Infection and Immunity has provided funding through a research grant to make this project possible.
+This project was designed and managed using the [REDCap](https://projectredcap.org/software/) electronic data capture tool hosted by the [Royal Melbourne Hospital Business Intelligence Unit](https://www.thermh.org.au/). [The Peter Doherty Institute for Infection and Immunity](https://www.doherty.edu.au/) has provided funding through a research grant to make this project possible.
