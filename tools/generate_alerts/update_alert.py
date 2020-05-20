@@ -14,16 +14,17 @@ to get these.
 
 
 Usage
-  ./update_alert.py PROJID PHPSESSIONID CSRF_TOKEN ALERT_TYPE ALERTINDEX OB_COD
+  ./update_alert.py phpsession csrftoken project type template target obcode
 
 ie update alert ALERTINDEX to match the template ALERT_TYPE, but substitute
 the appropriate values for OB_COD.
 
 eg
 
-  ./update_alert.py 984 fdosjafjl2lf ffdsljaf LATE_OBS_STAFF_SMS 300 ob_2b
+  ./update_alert.py d7kbb39c... 31ee8469.... 984 STAFF_ALERT_COMBINED_SMS 200 290 ob_14b
 """
 
+import json
 import sys
 import re
 from pprint import pprint
@@ -31,93 +32,77 @@ from urllib.parse import parse_qs
 
 import requests
 
-"""
-These curl update commands were captured using the chrome dev tools
 
-ie Opened up REDCap in chrome, manually opened up the alert, clicked save
-then in the 'network' tab I found the POST request, then right-clicked
-'save as curl request'
-"""
+# These are the html post vars required to update an alert
+# they map *almost* 1-to-1 with a structure set by javascript inside the
+# alert page editEmailAlert({...}, ...)
+POST_TEMPLATE = {
+    # REDCap seems to pull these from the database
+    # They are all present in the script call
+    'alert-type',
+    'email-to',
+    'ensure-logic-still-true',
+    'cron-send-email-on-date',
+    'alert-expiration',
+    'cron-send-email-on-next-time',
+    'email-failed',
+    'email-bcc',
+    'email-repetitive-change-calcs',
+    'cron-repeat-for',
+    'email-deleted',
+    'redcap_csrf_token',
+    'phone-number-to',
+    'alert-stop-type',
+    'alert-title',
+    'email-subject',
+    'cron-send-email-on-time-lag-days',
+    'email-from',
+    'cron-send-email-on',
+    'alert-message',
+    'cron-repeat-for-units',
+    'email-cc',
+    'alert-condition',
+    'cron-repeat-for-max',
+    'cron-send-email-on-time-lag-minutes',
+    'email-attachment-variable',
+    'email-incomplete',
+    'cron-send-email-on-next-day-type',
+    'form-name',
+    'email-repetitive',
+    'email-repetitive-change',
+    'cron-send-email-on-time-lag-hours',
+    'email-from-display',
 
-CURL_TEMPLATE_STAFF_COMBINED_EMAIL = r"curl 'https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:saveAlert' \
-  -H 'authority: redcap.yourcompay.com' \
-  -H 'accept: */*' \
-  -H 'x-requested-with: XMLHttpRequest' \
-  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36' \
-  -H 'content-type: application/x-www-form-urlencoded; charset=UTF-8' \
-  -H 'origin: https://redcap.yourcompay.com' \
-  -H 'sec-fetch-site: same-origin' \
-  -H 'sec-fetch-mode: cors' \
-  -H 'sec-fetch-dest: empty' \
-  -H 'referer: https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:setup' \
-  -H 'accept-language: en-GB,en;q=0.9,en-US;q=0.8,la;q=0.7' \
-  -H 'cookie: survey=vs2k9er1m0pdlfqqprlttih314; PHPSESSID=xxxxxxxxxxxxxxxxxxxxxxxxxx' \
-  -H 'dnt: 1' \
-  --data 'alert-title=Obs+Combined+Staff+alert+email+-+ob_template&alert-trigger=submit-logic&form-name=ob_template-2780&email-incomplete=0&alert-condition=%5Bcalc_trigger_alert_staff_template%5D+%3D+1&ensure-logic-still-true=on&alert-stop-type=RECORD&cron-send-email-on=now&cron-send-email-on-next-day-type=DAY&cron-send-email-on-next-time=&cron-send-email-on-time-lag-days=&cron-send-email-on-time-lag-hours=&cron-send-email-on-time-lag-minutes=&cron-send-email-on-date=&alert-send-how-many=once&email-repetitive=0&email-repetitive-change=0&email-repetitive-change-calcs=0&email-deleted=0&cron-repeat-for=0&cron-repeat-for-units=DAYS&cron-repeat-for-max=&alert-expiration=&alert-type=EMAIL&phone-number-to-freeform=61482525929&email-from-display=RMH+Covid&email-from=covidhmp%40mh.org.au&email-to=covidhmp%40mh.org.au&email-to-freeform=&email-cc-freeform=&email-bcc-freeform=&email-failed=&email-subject=%5Bcondtxt_alert_title_staff_template%5D%3A+%5Bcalc_name_display%5D+(UR+%5Bur%5D)&alert-message=%3Cp%3E%5Bcondtxt_alert_title_staff_template%5D%3A+%5Bcalc_name_display%5D+(UR+%5Bur%5D)%2C+has+just+recorded+a%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EHR+%5Bhr_template%5D%3C%2Fp%3E%0D%0A%3Cp%3ESAT+%5Bsat_template%5D%3C%2Fp%3E%0D%0A%3Cp%3ETEMP+%5Btemp_template%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EThese+numbers+trigged+a+%5Bcondtxt_alert_title_staff_template%5D+for+this+patient+because+their+thresholds+are%3C%2Fp%3E%0D%0A%3Cp%3EClinical+Review%3A+temp+%5Bcr_high_temp%5D+sat+%5Bcr_low_sat%5D+hr+%5Bcr_high_hr%5D%3C%2Fp%3E%0D%0A%3Cp%3EMET+Call%3A+temp+%5Bmc_high_temp%5D+sat+%5Bmc_low_sat%5D+hr+%5Bmc_high_hr%5D%2F%5Bmc_high_hr%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EUR%3A+%5Bur%5D%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EName%3A+%5Bcalc_name_display%5D%3C%2Fp%3E%0D%0A%3Cp%3EPhone%3A+%5Bmobile%5D%3C%2Fp%3E%0D%0A%3Cp%3EAge%3A+%5Bcalc_age%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EAddress%3A%3C%2Fp%3E%0D%0A%3Cp%3E%5Baddr_street_1%5D%3C%2Fp%3E%0D%0A%3Cp%3E%5Baddr_street_2%5D%3C%2Fp%3E%0D%0A%3Cp%3E%5Baddr_suburb%5D%3C%2Fp%3E%0D%0A%3Cp%3E%5Baddr_postcode%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3ETheir+emergency+contact+is+%5Bemcontact_name%5D+%5Bemcontact_phone%5D.%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EOpen+this+record%2C+and+record+your+response%3C%2Fp%3E%0D%0A%3Cp%3E%5Bform-url%3Aob_template%5D%3Cbr+%2F%3E%3Cbr+%2F%3EAnd%2FOr+add+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-link%5D%3C%2Fp%3E&index_modal_update=216&redcap_csrf_token=fb2c2daccca979c308046dc65007ccbc&alert-message-editor=%3Cp%3E%5Bcondtxt_alert_title_staff_template%5D%3A+%5Bcalc_name_display%5D+(UR+%5Bur%5D)%2C+has+just+recorded+a%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EHR+%5Bhr_template%5D%3C%2Fp%3E%0A%3Cp%3ESAT+%5Bsat_template%5D%3C%2Fp%3E%0A%3Cp%3ETEMP+%5Btemp_template%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EThese+numbers+trigged+a+%5Bcondtxt_alert_title_staff_template%5D+for+this+patient+because+their+thresholds+are%3C%2Fp%3E%0A%3Cp%3EClinical+Review%3A+temp+%5Bcr_high_temp%5D+sat+%5Bcr_low_sat%5D+hr+%5Bcr_high_hr%5D%3C%2Fp%3E%0A%3Cp%3EMET+Call%3A+temp+%5Bmc_high_temp%5D+sat+%5Bmc_low_sat%5D+hr+%5Bmc_high_hr%5D%2F%5Bmc_high_hr%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EUR%3A+%5Bur%5D%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EName%3A+%5Bcalc_name_display%5D%3C%2Fp%3E%0A%3Cp%3EPhone%3A+%5Bmobile%5D%3C%2Fp%3E%0A%3Cp%3EAge%3A+%5Bcalc_age%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EAddress%3A%3C%2Fp%3E%0A%3Cp%3E%5Baddr_street_1%5D%3C%2Fp%3E%0A%3Cp%3E%5Baddr_street_2%5D%3C%2Fp%3E%0A%3Cp%3E%5Baddr_suburb%5D%3C%2Fp%3E%0A%3Cp%3E%5Baddr_postcode%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3ETheir+emergency+contact+is+%5Bemcontact_name%5D+%5Bemcontact_phone%5D.%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EOpen+this+record%2C+and+record+your+response%3C%2Fp%3E%0A%3Cp%3E%5Bform-url%3Aob_template%5D%3Cbr+%2F%3E%3Cbr+%2F%3EAnd%2FOr+add+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-link%5D%3C%2Fp%3E&email-to=covidhmp%40mh.org.au&email-cc=&email-bcc=&phone-number-to=&email-attachment-variable=&redcap_csrf_token=fb2c2daccca979c308046dc65007ccbc' \
-  --compressed"
+    # REDCap set by JS during the save
+    'alert-send-how-many',
+    'index_modal_update',
+    'phone-number-to-freeform',
+    'email-to-freeform',
+    'email-cc-freeform',
+    'alert-trigger',
+    'email-bcc-freeform',
 
-CURL_TEMPLATE_STAFF_COMBINED_SMS = r"curl 'https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:saveAlert' -H 'authority: redcap.yourcompay.com' -H 'accept: */*' -H 'sec-fetch-dest: empty' -H 'x-requested-with: XMLHttpRequest' -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' -H 'content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'origin: https://redcap.yourcompay.com' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-mode: cors' -H 'referer: https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:setup' -H 'accept-language: en-GB,en;q=0.9,en-US;q=0.8,la;q=0.7' -H 'cookie: survey=bhdrgi5evnbo8lr1fel0t6u676; PHPSESSID=xxxxxxxxxxxxxxxxxxxxxxxxxx' -H 'dnt: 1' --data 'alert-title=Obs+Combined+Staff+alert+-+ob_template&alert-trigger=submit-logic&form-name=ob_template-2780&email-incomplete=0&alert-condition=%5Bcalc_trigger_alert_staff_template%5D+%3D+1&ensure-logic-still-true=on&alert-stop-type=RECORD&cron-send-email-on=now&cron-send-email-on-next-day-type=DAY&cron-send-email-on-next-time=&cron-send-email-on-time-lag-days=&cron-send-email-on-time-lag-hours=&cron-send-email-on-time-lag-minutes=&cron-send-email-on-date=&alert-send-how-many=once&email-repetitive=0&email-repetitive-change=0&email-repetitive-change-calcs=0&email-deleted=0&cron-repeat-for=0&cron-repeat-for-units=DAYS&cron-repeat-for-max=&alert-expiration=&alert-type=SMS&phone-number-to-freeform=61482525929&email-from-display=&email-from=&email-to-freeform=&email-cc-freeform=&email-bcc-freeform=&email-failed=&email-subject=&alert-message=%3Cp%3E%5Bcondtxt_alert_title_staff_template%5D%3A+%5Bcalc_name_display%5D+(UR+%5Bur%5D)%2C+has+just+recorded+a%3C%2Fp%3E%0D%0A%3Cp%3EHR+%5Bhr_template%5D%2C+%26nbsp%3BSAT+%5Bsat_template%5D%2C+%26nbsp%3BTEMP+%5Btemp_template%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3E%3Cbr+%2F%3EPatient+phone+is+%5Bmobile%5D.%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3E%3Cbr+%2F%3EOpen+this+record%2C+and+record+your+response%3A%3Cbr+%2F%3E%5Bform-url%3Aob_template%5D%3C%2Fp%3E%0D%0A%3Cp%3EAnd%2FOr+add+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-url%5D%3C%2Fp%3E&index_modal_update=200&redcap_csrf_token=539b6e4d00acd50f06d0a8ec66bd9e79&alert-message-editor=%3Cp%3E%5Bcondtxt_alert_title_staff_template%5D%3A+%5Bcalc_name_display%5D+(UR+%5Bur%5D)%2C+has+just+recorded+a%3C%2Fp%3E%0A%3Cp%3EHR+%5Bhr_template%5D%2C+%26nbsp%3BSAT+%5Bsat_template%5D%2C+%26nbsp%3BTEMP+%5Btemp_template%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3E%3Cbr+%2F%3EPatient+phone+is+%5Bmobile%5D.%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3E%3Cbr+%2F%3EOpen+this+record%2C+and+record+your+response%3A%3Cbr+%2F%3E%5Bform-url%3Aob_template%5D%3C%2Fp%3E%0A%3Cp%3EAnd%2FOr+add+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-url%5D%3C%2Fp%3E&email-to=&email-cc=&email-bcc=&phone-number-to=&redcap_csrf_token=539b6e4d00acd50f06d0a8ec66bd9e79' --compressed"
-
-CURL_TEMPLATE_PATIENT_COMBINED_SMS = r"curl 'https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:saveAlert' -H 'authority: redcap.yourcompay.com' -H 'accept: */*' -H 'sec-fetch-dest: empty' -H 'x-requested-with: XMLHttpRequest' -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' -H 'content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'origin: https://redcap.yourcompay.com' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-mode: cors' -H 'referer: https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:setup' -H 'accept-language: en-GB,en;q=0.9,en-US;q=0.8,la;q=0.7' -H 'cookie: survey=bhdrgi5evnbo8lr1fel0t6u676; PHPSESSID=xxxxxxxxxxxxxxxxxxxxxxxxxx' -H 'dnt: 1' --data 'alert-title=Obs+Combined+Patient+alert+-+ob_template&alert-trigger=submit-logic&form-name=ob_template-2780&email-incomplete=0&alert-condition=%5Bcalc_trigger_alert_patient_template%5D+%3D+1&ensure-logic-still-true=on&alert-stop-type=RECORD&cron-send-email-on=now&cron-send-email-on-next-day-type=DAY&cron-send-email-on-next-time=&cron-send-email-on-time-lag-days=&cron-send-email-on-time-lag-hours=&cron-send-email-on-time-lag-minutes=&cron-send-email-on-date=&alert-send-how-many=once&email-repetitive=0&email-repetitive-change=0&email-repetitive-change-calcs=0&email-deleted=0&cron-repeat-for=0&cron-repeat-for-units=DAYS&cron-repeat-for-max=&alert-expiration=&alert-type=SMS&phone-number-to=%5Bsurvey-participant-phone%5D&phone-number-to-freeform=&email-from-display=&email-from=&email-to-freeform=&email-cc-freeform=&email-bcc-freeform=&email-failed=&email-subject=&alert-message=%3Cp%3EHi+%5Bname_first%5D%2C%3C%2Fp%3E%0D%0A%3Cp%3E%5Bcondtxt_instr_patient_template%5D%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3E-+Covid+Home+Monitoring+Team+0482525929%3C%2Fp%3E&index_modal_update=201&redcap_csrf_token=af60aa3e9fa27e5901ae7f024251bbdf&alert-message-editor=%3Cp%3EHi+%5Bname_first%5D%2C%3C%2Fp%3E%0A%3Cp%3E%5Bcondtxt_instr_patient_template%5D%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3E-+Covid+Home+Monitoring+Team+0482525929%3C%2Fp%3E&email-to=&email-cc=&email-bcc=&phone-number-to=%5Bsurvey-participant-phone%5D&redcap_csrf_token=af60aa3e9fa27e5901ae7f024251bbdf' --compressed"
-
-CURL_TEMPLATE_LATE_OBS_STAFF_SMS = r"curl 'https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:saveAlert' -H 'authority: redcap.yourcompay.com' -H 'accept: */*' -H 'sec-fetch-dest: empty' -H 'x-requested-with: XMLHttpRequest' -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36' -H 'content-type: application/x-www-form-urlencoded; charset=UTF-8' -H 'origin: https://redcap.yourcompay.com' -H 'sec-fetch-site: same-origin' -H 'sec-fetch-mode: cors' -H 'referer: https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid=984&route=AlertsController:setup' -H 'accept-language: en-GB,en;q=0.9,en-US;q=0.8,la;q=0.7' -H 'cookie: survey=7pqj6rcmq5fa5nvcikov0dbpf1; PHPSESSID=xxxxxxxxxxxxxxxxxxxxxxxxxx' -H 'dnt: 1' --data 'alert-title=Late+obs+staff+-+ob_template&alert-trigger=submit-logic&form-name=ob_template-2780&email-incomplete=0&alert-condition=%5Bcalc_allow_patient_comms%5D+%3D+1+and+%5Btimestamp_template%5D+%3D+%22%22&ensure-logic-still-true=on&alert-stop-type=RECORD&cron-send-email-on=next_occurrence&cron-send-email-on-next-day-type=DAY&cron-send-email-on-next-time=13%3A00&cron-send-email-on-time-lag-days=&cron-send-email-on-time-lag-hours=&cron-send-email-on-time-lag-minutes=&cron-send-email-on-date=&alert-send-how-many=once&email-repetitive=0&email-repetitive-change=0&email-repetitive-change-calcs=0&email-deleted=0&cron-repeat-for=0&cron-repeat-for-units=DAYS&cron-repeat-for-max=&alert-expiration=&alert-type=SMS&phone-number-to-freeform=61482525929&email-from-display=&email-from=&email-to-freeform=&email-cc-freeform=&email-bcc-freeform=&email-failed=&email-subject=&alert-message=%3Cp%3E%5Bcalc_name_display%5D+(UR+%5Bur%5D)+is+5+hours+late+submitting+an+observation.%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EPatient+phone+is+%5Bmobile%5D.%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3ETheir+emergency+contact+is+%5Bemcontact_name%5D+%5Bemcontact_phone%5D.%3C%2Fp%3E%0D%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0D%0A%3Cp%3EAdd+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-url%5D%3C%2Fp%3E&index_modal_update=307&redcap_csrf_token=51c31b9265334f210fb4dade58817bcc&alert-message-editor=%3Cp%3E%5Bcalc_name_display%5D+(UR+%5Bur%5D)+is+5+hours+late+submitting+an+observation.%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EPatient+phone+is+%5Bmobile%5D.%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3ETheir+emergency+contact+is+%5Bemcontact_name%5D+%5Bemcontact_phone%5D.%3C%2Fp%3E%0A%3Cp%3E%26nbsp%3B%3C%2Fp%3E%0A%3Cp%3EAdd+a+clinical+note%3A%3Cbr+%2F%3E%5Bsurvey-queue-url%5D%3C%2Fp%3E&email-to=&email-cc=&email-bcc=&phone-number-to=&redcap_csrf_token=51c31b9265334f210fb4dade58817bcc' --compressed"
-
-ALERT_TEMPLATES = {
-    'STAFF_COMBINED_EMAIL': CURL_TEMPLATE_STAFF_COMBINED_EMAIL,
-    'STAFF_COMBINED_SMS': CURL_TEMPLATE_STAFF_COMBINED_SMS,
-    'PATIENT_COMBINED_SMS': CURL_TEMPLATE_PATIENT_COMBINED_SMS,
-    'LATE_OBS_STAFF_SMS': CURL_TEMPLATE_LATE_OBS_STAFF_SMS
+    # REDCap UI housekeeping
+    'redcap_csrf_token',
+    'alert-message-editor',
 }
 
+
 ALERT_TEMPLATE_ID = {
-    'STAFF_COMBINED_EMAIL': '216',
-    'STAFF_COMBINED_SMS': '200',
-    'PATIENT_COMBINED_SMS': '201',
+    'STAFF_ALERT_COMBINED_EMAIL': '216',
+    'STAFF_ALERT_COMBINED_SMS': '200',
+    'PATIENT_ALERT_COMBINED_SMS': '201',
     'LATE_OBS_STAFF_SMS': '307'
 }
 
 
-def get_postdata_str_from_curl(curlcmd):
-    postdata = re.findall(r"--data '([^']+)'", curlcmd)[0]
-    assert postdata
-    return postdata
-
-
-def update_alert(alert_template_post_data, alert_type, phpsessionid, csrftoken, projectid, alert_index, obcode):
-
-    template_postdata = parse_qs(keep_blank_values=True,
-                                 strict_parsing=True,
-                                 qs=alert_template_post_data)
-    print(template_postdata)
-
-    for key, val in template_postdata.items():
-
-        # we only expect to get one value for each key
-        # *except* 'redcap_csrf_token' because for dumb reasons REDCap sends
-        # that twice
-        EXPECT_DUPLICATES = ['redcap_csrf_token', 'email-to', 'phone-number-to']
-        if len(val) != 1 and key not in EXPECT_DUPLICATES:
-            print("Error Parsing curl template. Got multiple values for a POST var")
-            breakpoint()
-
-    # Deduplicate the key/vals
-    # cleaned_template_data = {k: v[0] for k, v in template_postdata.items()}
-
-    # Hack - remove duplicate email definitions
-    # REDCap posts the email-to addresses thusly
-    # email-to=covidhmp@mh.org.au
-    # email-to=developer@company.com
-    # email-to=covidhmp@mh.org.au,developer@company.com
-    # ie it sends them again as a comma separated string, we don't want that one
-    # But the only one it uses is the comma one, so remove the rest
-    template_postdata['email-to'] = [em for em in template_postdata['email-to']
-                                     if "," in em]
+def update_alert(sess, template_postdata, alert_type, csrftoken, projectid, alert_index, obcode):
 
     # Different alerts need us to transform the template in different ways
     # Some are a simple string.replace('_template', '_4a'), some just be set
     # explicitly
-    if alert_type in ['STAFF_COMBINED_EMAIL', 'STAFF_COMBINED_SMS',
-                      'PATIENT_COMBINED_SMS']:
+    if alert_type in ['STAFF_ALERT_COMBINED_EMAIL', 'STAFF_ALERT_COMBINED_SMS',
+                      'PATIENT_ALERT_COMBINED_SMS']:
         transformed_data = prepare_postvars_obs_simplealert(template_postdata, obcode)
     elif alert_type == 'LATE_OBS_STAFF_SMS':
         transformed_data = prepare_postvars_late_obs_staff(template_postdata, obcode)
@@ -125,6 +110,7 @@ def update_alert(alert_template_post_data, alert_type, phpsessionid, csrftoken, 
         sys.exit(f"Unknown alert_type: {alert_type}")
 
 
+    # Form update stuff
     transformed_data['index_modal_update'] = alert_index
     transformed_data['redcap_csrf_token'] = csrftoken
 
@@ -140,27 +126,24 @@ def update_alert(alert_template_post_data, alert_type, phpsessionid, csrftoken, 
     transformed_qvars_data['pid'] = projectid
 
     headers = {
-        'accept': '*/*',
-        'sec-fetch-dest': 'empty',
-        'x-requested-with': 'XMLHttpRequest',
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36',
         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'origin': 'https://redcap.yourcompay.com',
-        'sec-fetch-site': 'same-origin',
-        'sec-fetch-mode': 'cors',
-        'accept-language': 'en-GB,en;q=0.9,en-US;q=0.8,la;q=0.7',
-        'cookie': 'PHPSESSID=%s' % phpessionid,
-        'dnt': '1',
     }
 
     payload = transformed_data
+    pprint(payload)
 
-    print(payload)
-    # breakpoint()
 
-    r = requests.post(URL, headers=headers, params=transformed_qvars_data, data=payload)
-    print(r)
-    print(r.text)
+    req = requests.Request(
+        'POST', url=URL, headers=headers, params=transformed_qvars_data, data=payload)
+    prep = req.prepare()
+    prep.headers = {**sess.headers, **prep.headers}
+
+    #breakpoint()
+    res = sess.send(prep)
+
+    checkexit_redcap_loggout(res)
+    print(res)
+    print(res.text)
 
 
 def prepare_postvars_obs_simplealert(template_postdata, obcode):
@@ -176,16 +159,22 @@ def prepare_postvars_obs_simplealert(template_postdata, obcode):
         print(f"{key}: {vals}")
 
         tranformed_key = key.replace('_template', f'_{obcode_trailer}')
-        tranformed_vals = [v.replace('_template', f'_{obcode_trailer}') for v in vals]
-
-        # remove dupes in the val list
-        tranformed_vals = list(set(tranformed_vals))
 
         # TODO what if that text exists as a literal in the text?
         # TODO do we test for undefined? [variables]?
 
+
+        tranformed_vals = vals
+        if tranformed_vals:
+            tranformed_vals = vals.replace('_template', f'_{obcode_trailer}')
+
         transformed_data[tranformed_key] = tranformed_vals
 
+    if transformed_data['phone-number-to-freeform'] is None:
+        if transformed_data['phone-number-to'] > '':
+            transformed_data['phone-number-to-freeform'] = transformed_data['phone-number-to']
+
+            transformed_data['phone-number-to'] = None
     return transformed_data
 
 
@@ -202,7 +191,7 @@ def prepare_postvars_late_obs_staff(template_postdata, obcode):
 
     # Explicitly set the triggering form to be the PRECEEDING observation
     transformed_data = template_postdata
-    transformed_data['form-name'] = [transformed_data['form-name'][0].replace('_template', f'_{preceding_obnum}')]
+    transformed_data['form-name'] = transformed_data['form-name'].replace('_template', f'_{preceding_obnum}')
 
     # Now just replace the rest as usual
     transformed_data = prepare_postvars_obs_simplealert(transformed_data, obcode)
@@ -282,19 +271,84 @@ def get_obs_preceding_obs(obcode):
         assert False  # unknown obcode
 
 
+def load_postdata_from_template(sess, projectid, template_id):
+    alerts_page_url = get_alerts_page_url(projectid)
+    res = sess.get(alerts_page_url, allow_redirects=False)
+    checkexit_redcap_loggout(res)
+
+    alerts_page_html = res.text
+    data = extract_alert_data_structure(alerts_page_html, template_id)
+
+    # Add the extra post fields
+
+    # Update the triggering form to include event code
+    # This is probably a bug. Not sure how this works with longitudinal
+    data['form-name'] = "%s-%s" % (data['form-name'], data['form-name-event'])
+
+    data = {
+        'alert-send-how-many': None,
+        'index_modal_update': template_id,
+        'phone-number-to-freeform': None,
+        'email-to-freeform': None,
+        'email-cc-freeform': None,
+        'alert-trigger': 'submit-logic',
+        'email-bcc-freeform': None,
+        'redcap_csrf_token': None,
+        'alert-message-editor': None,
+        **data
+    }
+
+    filtered = {k: data[k] for k in POST_TEMPLATE}
+
+    assert set(POST_TEMPLATE) == set(filtered.keys())
+    return filtered
+
+
+def extract_alert_data_structure(alerts_page_html, alertid):
+    """
+    Find the javascript call to open the editor for alertid. Extract params.
+
+    Looks something like this:
+       <script type="text/javascript">function __rcfunc_editEmailAlert_emailRow10(){ editEmailAlert({"alert-id":"200","alert-title":"...},200,11) }</script>
+    """
+    for scriptcall in re.findall(r"editEmailAlert\({(.*)}.*\)", alerts_page_html):
+        if f'"alert-id":"{alertid}"' in scriptcall:
+            data = json.loads("{" + scriptcall + "}")
+            return data
+
+    raise Exception("Could not find template alert structure")
+
+
+def get_alerts_page_url(projectid):
+    # TODO break out to config
+    return f"https://redcap.yourcompay.com/redcap_v9.8.0/index.php?pid={projectid}&route=AlertsController:setup"
+
+
+def checkexit_redcap_loggout(response):
+    """Given a requests response exit with error if we've been logged out.
+
+    Redcap does not give a http response code on logout. You just get back
+    Detect if we've been bumped to a login page and exit"""
+
+    # Quick and dirty. Look for the forgot password link
+    if response.status_code == 302 or 'Authentication/password_recovery.php' in response.text:
+        sys.exit("Logged out of REDCap")
+
+
 if __name__ == '__main__':
 
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 8:
         sys.exit(
-            "Usage:\n%s PROJECTID PHPSESSIONID CSRF_TOKEN ALERT_TYPE ALERTINDEX OB_COD" %
+            "Usage:\n%s phpsession csrftoken project type template target obcode" %
             sys.argv[0])
 
-    projectid = sys.argv[1]
-    phpessionid = sys.argv[2]
-    csrf_token = sys.argv[3]
+    phpsessionid = sys.argv[1]
+    csrf_token = sys.argv[2]
+    projectid = sys.argv[3]
     alert_type = sys.argv[4]
-    alert_index = sys.argv[5]
-    obcode = sys.argv[6]
+    template_id = sys.argv[5]
+    target_id = sys.argv[6]
+    obcode = sys.argv[7]
 
     # TODO validate phpessionid
 
@@ -303,36 +357,44 @@ if __name__ == '__main__':
     # TODO validate csrf_token
 
     # Is this an alert type we know?
-    if alert_type not in ALERT_TEMPLATES.keys():
-        sys.exit("Unknown alert type: %s\nKnown types: %s" % (alert_type, ALERT_TEMPLATES.keys()))
+    if alert_type not in ALERT_TEMPLATE_ID.keys():
+        sys.exit("Unknown alert type: %s\nKnown types: %s" % (alert_type, ALERT_TEMPLATE_ID.keys()))
 
-    # TODO validate alert_index
-    if not alert_index.isdigit():
-        sys.exit("Invalid alert index: %s" % alert_index)
+    if not template_id.isdigit():
+        sys.exit("Invalid template index: %s" % template_id)
+
+    if not target_id.isdigit():
+        sys.exit("Invalid target index: %s" % target_id)
 
     # TODO validate obcode
     if not valid_obcode(obcode):
         sys.exit("Invalid ob_code: %s" % obcode)
 
 
-    template_postdata_str = get_postdata_str_from_curl(ALERT_TEMPLATES[alert_type])
-    template_postdata = parse_qs(keep_blank_values=True,
-                                 strict_parsing=True,
-                                 qs=template_postdata_str)
-    alert_title = template_postdata['alert-title'][0]
+    # Authenticated requests session
+    sess = requests.Session()
+    sess.headers.update({'cookie': f'PHPSESSID={phpsessionid}'})
+
+
+
+    template_postdata = load_postdata_from_template(sess, projectid, template_id)
+
+
+    alert_title = template_postdata['alert-title']
 
     # Did we get the right template? Check the expected redcap object id
     # is the same one that's in the curl cmd template
-    assert template_postdata['index_modal_update'][0] == ALERT_TEMPLATE_ID[alert_type]
+    assert template_postdata['index_modal_update'] == ALERT_TEMPLATE_ID[alert_type]
 
     print("Does this look right?...")
     pprint({
-        'phpsessionid': phpessionid,
+        'phpsessionid': phpsessionid,
         'csrftoken': csrf_token,
-        'template': alert_type,
-        'template title': alert_title,
         'projectid': projectid,
-        'alert_index': alert_index,
+        'type': alert_type,
+        'template_id': template_id,
+        'template title': alert_title,
+        'target_id': target_id,
         'obcode': obcode
     })
 
@@ -345,10 +407,10 @@ if __name__ == '__main__':
             sys.exit("Aborting")
 
     update_alert(
-        alert_template_post_data=template_postdata_str,
+        sess,
+        template_postdata=template_postdata,
         alert_type=alert_type,
-        phpsessionid=phpessionid,
         csrftoken=csrf_token,
         projectid=projectid,
-        alert_index=alert_index,
+        alert_index=target_id,
         obcode=obcode)

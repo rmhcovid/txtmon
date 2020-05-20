@@ -59,5 +59,5 @@ if __name__ == '__main__':
     if not (session and csrf):
         sys.exit("Could not authenticate")
 
-    sys.stdout.write(f"PHPSESSID: '{session}'\n")
-    sys.stdout.write(f"csrf: '{csrf}'\n")
+    sys.stdout.write(f"SESSIONID='{session}'\n")
+    sys.stdout.write(f"CSRF_TOKEN='{csrf}'\n")

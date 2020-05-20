@@ -28,19 +28,28 @@ ClinicalNotes are plain text notes clinicians record about patients.
 
 # Implementation
 
-## Patient Registration and Ineligible Patients
 
-TODO changing this week
+## Patient Information
 
-## Patient Details
+The Registration instrument holds the core patient contact information. Name, address, emergency contacts etc. It is linked to other hospital systems via the [UR] field.
 
-TODO changing this week
+## Patient Registration, and Ineligible Patients
 
-The Registration instrument holds the core patient contact information. Name, address, emergency contacts etc. 
+Patients are registered via a web survey on the Registration Instrument.
 
-TODO we intend to change where patient details are stored. Update me.
-TODO change after split
+Most patients will give us their symptoms and contact details, be marked as BIDAILY monitoring, give their preexisting condition (the pec_ fields), be issued a thermometer/oximeter and be registered. If they are being home monitored they are asked to fill out a Consent form (see below) and then the clinician walks them through their first observation (ob_0) before sending them home.
 
+The Registration instrument keeps many fields but most are default or hidden (eg @HIDDEN-SURVEY, @DEFAULT=), and Branching Logic keeps the clinicians work to a minimum.
+
+A REDCap alert triggers on completing the Registration instrument and sends the patient an appropriate welcome SMS, and a link to their first Observation if applicable, which we ask them to show to the clinician.
+
+Note that the survey has been broken up into a number of steps (using 'Begin New Section' fields) and specifically ordered some fields. This is subtle and important. We have to use some REDCap @default tricks here to generate fields such as their full name [calc_name_display]. This is ugly but necessary due to the lack of dynamic calculation in REDCap. Be aware that moving fields or removing sections can have unintended consequences.
+
+Registration is complicated further because we have a business requirement to also store *Ineligible* patients. These are patients that were considered for home monitoring but the clinician decided they were inappropriate. We store their UR and reason for being ineligible. Most of the fields we would otherwise complete are irrelevant for these patients (contact info, medical info, monitoring dates).
+
+Ineligible patient handling makes the form handling a little clunky. We need to let those users stop the form early using REDCap *Stop Actions*. But those can only be triggered by a drop/down field. A business requirement is that when a patient is marked as ineligible the clinician must give a reason, and that reason can be 'OTHER' with plain text entry. This is the reason for the [mon_group_inelg_confirm] field. It only exists to be a radio button we can trigger a *Stop Action* on.
+
+After registration we ask monitored patients to complete a Consent form.
 
 ### Phone numbers
 
@@ -64,7 +73,7 @@ The virus takes around a fortnight to run its course. Patients may come to us at
 
 Patients have a *Monitoring Status* [calc_mon_status] (OBSERVATION|ESCALATION|PAUSED|ENDED) that at any point tell us if we should be conducting the twice-daily Observations, just sending them Escalation warnings, Pause their monitoring (don't communicate with them) or that their monitoring has Ended. REDCaps limited calculation system means monitoring status is a nasty nested if logic. See notes below about getting around this.
 
-A patients status depends on their *Monitoring Group* [mon_group] (chosen by staff at registration), their *Location* [patient_loc] (set by staff), and whether they are in their *Monitoring Window*.
+A patients status depends on their *Monitoring Group* [mon_group] (chosen by staff at registration), their *Location* [patient_loc] (set by staff), whether they are in their *Monitoring Window*, and if they have been discharged [mon_discharge_date].
 
 Their Monitoring Window is worked out from their date of *Monitoring Admission* [mon_admission_date] and how long the clinician wants them monitored for *Monitoring days* [mon_period_days]. We work out how many days have passed since their admission in [calc_admission_days] and whether this is more than [mon_period_days]. The calculation variable [calc_in_mon_window] wraps this all up in a neat IN/NOT-IN boolean.
 
@@ -79,6 +88,30 @@ There are some shorthand helper variables for checking a patients status. These 
 - [calc_mon_status_ended]. 
 
 The patients status also impacts whether we should contact them. We don't want to send an embarrassing or upsetting message if the patient is back in hospital or has died. We capture this logic in the [calc_allow_patient_comms] variable (1 ALLOW, 0 MUTE). There are further details on this in the Alerts documentation.
+
+## Patient Location
+
+We keep track of whether the patient is in their HOME or the HOSPITAL in [patient_loc]. We need to know if a patient is readmitted to hospital so that we can pause monitoring.
+
+## Patient Consent Process and initial observation
+
+When a patient completes the Registration instrument, we automatically send them a SMS welcoming them to the monitoring program. That message also tells them they must first legally consent, and there is a link to the Consent Instrument survey.
+
+This does NOT apply to patients registered as INELIGIBLE ([mon_group] = 0).
+
+The Consent form requires them to click 'I agree' before it will complete.
+
+Once the consent form is completed another SMS is sent to the user with further instructions. See 'Patient Registration Consent Message' below.
+
+## Patient Discharge Process
+
+A patient becomes discharged as soon as they have a value for [mon_discharge_date] in the Discharge Instrument. The status logic looks for a nonempty value in that field.
+
+ie [mon_discharge_date] <> ''
+
+I was concerned that REDCap may not update the calculated field [calc_mon_status] based on changes to a separate instrument, but it seems to work.
+
+An earlier version of the system used Patient Location [patient_loc] which is why there is still an option (3, DISCHARGED) although it is hidden (@HIDECHOICE = '3'). We did not remove this immediately so as not to accidentally re-enable patients. If you're reading this some time in the future you can likely safely remove that old discharge value.
 
 ## Observations
 
@@ -105,7 +138,7 @@ The only one you edit in REDCap is **ob_template**. The others are copied from t
 
 This design unfortunately also means there is a copy of each REDCap *Alert* for each observation. One for patient SMS alerts, one for Staff SMS alerts, one for Late observations, etc. This adds up quickly. **You Do Not Manage This Manually**. The cmdline tools also automatically generate and sync these alerts/observations. You only edit the ...ob_template versions.
 
-Ideally we would use a REDCap *Repeating Instrument* for this. Twice each day (via a scheduled alert) we would send patients a SMS with a link. That link would create a fresh Observatio repeating instance. Then we'd only need one Observation Instrument and one type of each patient/staff medical alerts. *BUT* REDCap has no way to generate a link to a *new* repeating instrument. If you use the [survey-url] [survey-link] tags in emails/sms they always link to the first instance. So it works great for the first observation, but the next one gives the user 'Sorry, you've already completed this survey' error.
+Ideally we would use a REDCap *Repeating Instrument* for this. Twice each day (via a scheduled alert) we would send patients a SMS with a link. That link would create a fresh Observation repeating instance. Then we'd only need one Observation Instrument and one type of each patient/staff medical alerts. *BUT* REDCap has no way to generate a link to a *new* repeating instrument. If you use the [survey-url] [survey-link] tags in emails/sms they always link to the first instance. So it works great for the first observation, but the next one gives the user 'Sorry, you've already completed this survey' error.
 
 We considered using the *Survey Queue* for this. That does give the user a button for 'Add another xxxx'. But we decided this was confusing, and it also let patients records multiple observations in a row.
 
@@ -141,7 +174,7 @@ The Observation instrument contains a number of calculated fields to work out if
 
 If you're adding new conditions, keep the naming scheme consistent.
 
-The mutually-exclusive alerting is implemented in the logic for calc_trigger_[fw|cr|mc]. **IMPORTANT** redcap calculates the fields in order, and it does NOT do a query planning step. That means that if a calculation depends on another field, that field must occur before it on the form. **If you change the order of these fields** then you can break the calculations. We need calc_trigger_fw to be calculated before calc_trigger_cr and so on. This is subtle and dangerous REDCap issue.
+The mutually-exclusive alerting is implemented in the logic for calc_trigger_[fw|cr|mc]. **IMPORTANT** redcap calculates the fields in (alphabetical?) order, and it does NOT do a query planning step. That means that if a calculation depends on another field, that field must occur before it on the form. **If you change the order of these fields** then you can break the calculations. We need calc_trigger_fw to be calculated before calc_trigger_cr and so on. This is subtle and dangerous REDCap issue.
 
 
 ### Medical Alert Text
@@ -162,15 +195,33 @@ This is a crappy way to manage stock text and alerts but the best we have availa
 
 ## Observation Invites
 
-We need to prompt the patients each day to fill out their observations. We do this using the built in REDCap *Automatic (Survey) Invite* functionality.
+We need to prompt the patients each day to fill out their observations. We do this using the built in REDCap *Automatic (Survey) Invite* functionality. Each observation instrument has an *Automatic Invitation* defined that sends the user a SMS invite at a particular time (eg 8am or 3pm).
 
-Each observation instrument has an *Automatic Invitation* defined that sends the user a SMS invite at a particular time (eg 8am or 3pm).
+Automatic Invites are also how the *Late Observation Reminder* to the patient is sent. The *Enable Reminder* section is configured to send them a reminder every N hours. This is NOT how the late-observation to staff is built (that works via Alerts, see below).
+
+There is no invite for ob_0 (the one at registration) because we want that invite included in the *Registration SMS* we send the user. The alert sent to patients at registration includes the link.
+
 
 Invitations have a logic check ([calc_mon_status_observation] = 1) to ensure the patient is still under observation. The patient might have finished their monitoring, or they might have been admitted back to hospital, or they may never have been under observation.
 
-Automatic Invites are also how the *Late Observation Reminder* to the patient is sent. The *Enable Reminder* section is configured to send them a reminder every N hours. This is NOT how the alert to staff about late observations is built. That works off Alerts. See below.
 
-These invites are NOT defined for ob_0 (the one at registration). That's because we want that invite included in the *Registration SMS* we send the user. So that's built with a REDCap Alert rather than Automatic Invite.
+**The invite logic is tricky**. We need them to go out at a specific time of day (8am/3pm) every day. REDCap can only schedule specific times of day using the 'Send on Next day at hh:mm' function. There is no option to send '3 days later at 3pm', so alerts *are always 'triggered' the day before they must be sent*. That leads to this complicated looking logic:
+
+> # Example of Day 4 invite
+> [calc_mon_status_observation] = 1 and (datediff([mon_admission_date], 'today', 'd') = 3 or datediff([mon_admission_date], 'today', 'd') = 4)
+
+First the logic tests to see if then are still under monitoring
+> [calc_mon_status_observation] = 1 ...
+
+And *if N number of days have passed* since admission
+> ...  and (datediff([mon_admission_date], 'today', 'd') = 3 or datediff([mon_admission_date], 'today', 'd') = 4)
+
+
+Why is the date checked twice? Because REDCap schedules the alert on the first day (day 3), and then checks the logic *again* the next day before sending (now day 4). We need to do a check at send so that we can enforce [calc_mon_status_observation] = 1.
+
+In an earlier design we triggered each invite off the previous days, eg ob_2a was scheduled when ob_1a was submitted. But this meant that if a patient skipped an observation then they would stop getting invites!
+
+This is just a work around for REDCaps limited scheduling. If you're reading this in the future there may now be a better option available.
 
 
 **You do not need to edit these manually**. Use the built in feature 'Upload or Download Auto Invites' in REDCap to just dump them as a csv and edit them that way.
@@ -201,11 +252,18 @@ The design tradeoff that resulted in having many Observation instruments (see th
 
 Patients finish their monitoring period, and some return to hospital sick, or die. We do not want to send upsetting or embarrassing alerts in these situations.
 
-Many of our alerts in REDCap first do a check on '[calc_allow_patient_comms] = 1' (documented above). Some alerts heck the patients status manually for instance where we send an alert after they have been discharged (which mutes most communication).
+Many of our alerts in REDCap first do a check on '[calc_allow_patient_comms] = 1' (documented above). Some alerts check the patient's status manually for instance where we send an alert after they have been discharged (which mutes most communication).
+
+### Patient Registration Consent Message
+
+- 'Patient Registration - Consent'
+
+Welcomes the patient to the program and gives a link to the Consent survey.
+See 'Patient Consent Process and initial observation' section above.
 
 ### Patient Registration Welcome Message
 
-We have different sign-up messages depending on the *Monitoring Group* of the patient. They are triggered on the Registration Instrument being saved, but conditional logic on the alert sends the appropriate one.
+We have different sign-up messages depending on the *Monitoring Group* of the patient. They are triggered on the Consent Instrument being saved if the user has consented. Conditional logic on the alerts sends the appropriate one.
 
 - 'Patient Registration - BIDAILY'
 - 'Patient Registration - ESCALATION checkin'
@@ -263,8 +321,7 @@ Two alerts are sent to a patient when their status changes to DISCHARGED.
 - Monitoring Discharge patient - SMS
 - Monitoring Discharge patient - EMAIL
 
-The check [patient_loc] = '3' and [mon_discharge_reason] = '1' fires when they are DISCHARGED, and only if they are healthy (discharge reason 1).
-TODO change this to trigger on completion of the new Discharge instrument.
+The check [mon_discharge_date] <> '' and [mon_discharge_reason] = '1' fires when they are DISCHARGED, and only if they are healthy (discharge reason 1).
 
 ### Post Discharge Feedback Survey
 
@@ -272,8 +329,7 @@ Two days after a patient is DISCHARGED and was HEALTHY we send them a link to a 
 
 'Post Discharge Patient Follow-up - SMS'
 
-The check [patient_loc] = '3' and [mon_discharge_reason] = '1' fires when they are DISCHARGED, and only if they are healthy (discharge reason 1). But the message is delayed by two days using the 'Send after lapse of time' scheduling feature.
-TODO change this to trigger on completion of the new Discharge instrument.
+The check [mon_discharge_date] <> '' and [mon_discharge_reason] = '1' fires when they are DISCHARGED, and only if they are healthy (discharge reason 1). But the message is delayed by two days using the 'Send after lapse of time' scheduling feature.
 
 
 ### Staff Call Reminder for BIDAILY patients
@@ -310,6 +366,6 @@ At time of writing there are only a few simple reports. The intention is that ov
 There is a reporting tool inside the RMH Business Intelligent Unit that is responsible for creating a PDF archive of the patients information after they are dicharged from monitoring. That was built by Tim Fazio's team and is outside the scope of this documentation.
 
 
-## Patient backup Report
+## Patient Backup Report
 
 We asked that a twice daily export of the data in the system be made as a backup safety-net in case something happened to REDCap while the project was running. ie maybe the staff could continue monitoring staff via excel in the interim. That has not eventuated but patient numbers have been low so far.

@@ -78,6 +78,7 @@ Please see the attached LICENSE document.
 ## Version History
 
 - See  [CHANGELOG.md](https://github.com/rmhcovid/txtmon/blob/master/CHANGELOG.md)
+- 1.1.0 - 2020-05-20 - COVIDHomeMonitoring_2020-05-20_1527.REDCap.xml
 - 0.9.0 - 2020-05-05 - CovidHomeMonitoring_2020-05-05_1649.REDCap.xml
 
 ## Author and Acknowledgements

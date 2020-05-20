@@ -62,6 +62,7 @@ This guide assumes your REDCap server administrator has already configured it to
 6. Click 'Configure Twilio settings'
    - set 'Select the project modules in which the Twilio service will be enabled' to 'ALL: Surveys and survey invitations + Alerts & Notifications'
    - set 'Choose the default invitation preference for new survey participants' to 'SMS invitation (contains survey link)'
+   - tick 'Send survey invitation with survey link via SMS'
    - set 'Designate a phone number field for survey invitations' to 'mobile ("Mobile Phone Number") 
    - save
 7. Click the 'I'm Done' button next to 'Twilio SMS and Voice Call services'
