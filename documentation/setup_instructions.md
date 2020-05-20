@@ -191,12 +191,6 @@ See tool README.txt for details.
 
 If Twilio isn't setup correctly (valid auth details, valid sending phone number) you will get a PHP 500 error any time the system tries to send a SMS. The error message shown will not explain this.
 
-## Patient missing an observation pauses future observations
-
-Currently each days observations are scheduled based on the previous days, so if a patient doesn't complete an observation their monitoring stops. We're actively seeking a better REDCap design that will avoid this. The workaround for now is to complete the observation on the patients behalf. Staff are alerted after 5 hours if a patient hasn't responded.
-
-Please see 'documentation/redcap_design_overview.md' for more details.
-
 ## You do not need to be authenticated to add a patient Clinical Note
 
 We want clinicians to be able to follow a link from an alert SMS and easily add Clinical Notes to patients. To allow this we have enabled the REDCap Survey queue functionality for Clinical Notes. This means that if a patient (or someone else) finds their REDCap survey queue URL they too can add a clinical note. This is a design trade off we are looking for an alternative to.
